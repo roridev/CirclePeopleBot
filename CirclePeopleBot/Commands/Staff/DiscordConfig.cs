@@ -23,6 +23,7 @@ namespace CirclePeopleBot.Commands.Staff
         {
             DiscordEmbedBuilder Embed = new DiscordEmbedBuilder();
             Embed
+                .WithColor(new DiscordColor(255, 150, 202))
               .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
               .WithDescription($"Administrative Panel")
               .AddField($"Suggestion System", $"Type : **{ctx.Prefix}** config `suggestions/sug` <add/remove/list> to edit the system\n")
@@ -40,6 +41,7 @@ namespace CirclePeopleBot.Commands.Staff
           
             DiscordChannelConverter parser = new DiscordChannelConverter();
             Embed
+                    .WithColor(new DiscordColor(255, 150, 202))
                     .WithDescription($"Please reply with the `youtube channel` (URL)")
                     .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
                     .WithAuthor($"Configuration of the Youtube Integration", "https://discord.gg/CirclePeople", ctx.Guild.IconUrl);
@@ -48,6 +50,7 @@ namespace CirclePeopleBot.Commands.Staff
             string ChannelURL = input.Content;
             string ChannelID = (ChannelURL.Contains("http") ? (ChannelURL.Contains("?view_as") ? ChannelURL.Split('?')[0].Split('/').Last() : ChannelURL.Split('/').Last()) : "Invalid URL");
             Embed
+                .WithColor(new DiscordColor(255, 150, 202))
                 .WithDescription($"Please reply with the `discord channel` (E.g. #youtube)")
                 .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
                 .WithAuthor($"Configuration of the Youtube Integration", "https://discord.gg/CirclePeople", ctx.Guild.IconUrl);
@@ -72,7 +75,7 @@ namespace CirclePeopleBot.Commands.Staff
             Embed
                    .ClearFields()
                    .WithDescription($"YT : Channel **{Title}** [{ChannelID}] \n **DISCORD** :  {Channel.Value.Mention} set!\n\n **Sidenote : ** The YT Channel will be updated on the next cycle. [~30s]")
-                   
+                   .WithColor(new DiscordColor(255, 150, 202))
                    .WithThumbnailUrl(ImageURL)
                    .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
                    .WithAuthor($"Configuration of the Youtube Integration", "https://discord.gg/CirclePeople", ctx.Guild.IconUrl);
@@ -103,6 +106,7 @@ namespace CirclePeopleBot.Commands.Staff
                 DiscordEmbedBuilder Embed = new DiscordEmbedBuilder();
                 DiscordSystem mainSys = new DiscordSystem();
                 Embed
+                    .WithColor(new DiscordColor(255, 150, 202))
                     .WithDescription($"Please reply with the `input channel` (The one with member input)")
                     .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
                     .WithAuthor($"Configuration of the Suggestion System", "https://discord.gg/CirclePeople", ctx.Guild.IconUrl);
@@ -112,6 +116,7 @@ namespace CirclePeopleBot.Commands.Staff
                 inputChannel = request.Value;
                 mainSys.inputID = inputChannel.Id;
                 Embed
+                    .WithColor(new DiscordColor(255, 150, 202))
                     .WithDescription($"Please reply with the `approved channel` (The one with only staff access)")
                     .AddField($"Input Channel : ", inputChannel.Mention)
                     .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
@@ -122,6 +127,7 @@ namespace CirclePeopleBot.Commands.Staff
                 approvedChannel = request.Value;
                 mainSys.aprovedID = approvedChannel.Id;
                 Embed
+                    .WithColor(new DiscordColor(255, 150, 202))
                     .WithDescription($"Please reply with the `name` you want to give [E.g. Standard]")
                     .AddField($"Approved Channel : ", approvedChannel.Mention)
                     .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
@@ -163,6 +169,7 @@ namespace CirclePeopleBot.Commands.Staff
                 String listOfSystems = "";
                 CPBot.Systems.ForEach(x => listOfSystems += $"{CPBot.Systems.IndexOf(x)}. {x.name}\n");
                 Embed
+                    .WithColor(new DiscordColor(255, 150, 202))
                    .WithDescription($"Please reply with the `number` of the system you want to remove")
                    .AddField("List", listOfSystems)
                    .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
@@ -170,6 +177,7 @@ namespace CirclePeopleBot.Commands.Staff
                 var msg = await ctx.RespondAsync(embed: Embed);
                 var input = await cpInteract.GetResponce(CPBot.Interactivity, ctx);
                 Embed
+                    .WithColor(new DiscordColor(255, 150, 202))
                    .WithDescription($"System {CPBot.Systems[int.Parse(input.Content)].name} Removed. ")
                    .ClearFields()
                    .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
@@ -184,6 +192,7 @@ namespace CirclePeopleBot.Commands.Staff
                 String listOfSystems = "";
                 CPBot.Systems.ForEach(x => listOfSystems += $"{CPBot.Systems.IndexOf(x)}. {x.name}\n");
                 Embed
+                    .WithColor(new DiscordColor(255, 150, 202))
                    .WithDescription($"List of systems currently active")
                    .AddField("List", listOfSystems)
                    .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")

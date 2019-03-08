@@ -98,7 +98,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\Beta\YoutubeStuff.cs" />
     <Compile Include="Commands\Help.cs" />
     <Compile Include="Commands\Staff\DiscordConfig.cs" />
     <Compile Include="Config.cs" />
@@ -112,6 +111,8 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Commands\Beta\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

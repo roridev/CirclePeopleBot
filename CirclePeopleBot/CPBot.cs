@@ -174,6 +174,7 @@ namespace CirclePeopleBot
                         
                         transferedMessage
                             .WithFooter($"Post by : {author}")
+                            .WithColor(new DiscordColor(255, 150, 202))
                             .WithDescription(String.IsNullOrWhiteSpace(suggestion)?"No Message :(": suggestion)
                             .WithImageUrl(attachment == null ? "https://i.imgur.com/a76ETJA.png" : attachment.Url)
                             .WithAuthor($"Post Approved");
