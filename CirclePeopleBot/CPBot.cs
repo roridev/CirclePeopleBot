@@ -195,7 +195,7 @@ namespace CirclePeopleBot
 
         private async static Task VideoLookup()
         {
-            Console.WriteLine("[VIDLOOKUP] I Exists!");
+            
             if (CPBot.YoutubeSystem.ChannelURL != "0")
             {
                 var Request = CPBot.YoutubeClient.PlaylistItems.List("snippet, contentDetails, status");
@@ -206,16 +206,16 @@ namespace CirclePeopleBot
                 var LatestVideos = Responce.Items;
                 foreach (var video in LatestVideos)
                 {
-                    if (video.Id != CPBot.YoutubeSystem.LastVideoID && CPBot.YoutubeSystem.BroadcastID != 0 && video.Snippet.Position == 0)
+                    if (video.Snippet.ResourceId.VideoId != CPBot.YoutubeSystem.LastVideoID && CPBot.YoutubeSystem.BroadcastID != 0 && video.Snippet.Position == 0)
                     {
                         var broadcast = await Client.GetChannelAsync(CPBot.YoutubeSystem.BroadcastID);
                         DiscordEmbedBuilder videoEmbed = new DiscordEmbedBuilder();
                         videoEmbed
                             .WithThumbnailUrl($"{video.Snippet.Thumbnails.High.Url}")
                             .WithDescription($"{(video.Snippet.PublishedAt.HasValue? $" Published at : {video.Snippet.PublishedAt?.ToShortDateString()} @ {video.Snippet.PublishedAt?.ToShortTimeString()}" : ".")}")
-                            .WithAuthor($" New Video : {video.Snippet.Title}",$"http://youtu.be/{video.Id}")
+                            .WithAuthor($" New Video : {video.Snippet.Title}",$"http://youtu.be/{video.Snippet.ResourceId.VideoId}")
                             .WithColor( new DiscordColor(255, 150, 202));
-                        CPBot.YoutubeSystem.LastVideoID = video.Id;
+                        CPBot.YoutubeSystem.LastVideoID = video.Snippet.ResourceId.VideoId;
                         File.WriteAllText($@"{Directory.GetCurrentDirectory()}\YTConfig.json", JsonConvert.SerializeObject(CPBot.YoutubeSystem));
                         await broadcast.SendMessageAsync(embed: videoEmbed);
                     }
