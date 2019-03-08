@@ -3,6 +3,8 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
+using Google.Apis.Services;
+using Google.Apis.YouTube.v3;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -22,9 +24,29 @@ namespace CirclePeopleBot
         public static Config MainCFG { get; set; }
         public static DiscordClient Client { get; set; }
         public static List<DiscordSystem> Systems { get; set; }
-
+        public static YouTubeService YoutubeClient = new YouTubeService();
+        public static YoutubeConfig YoutubeSystem { get; set; }
         static void Main(string[] args)
         {
+            
+
+            if (File.Exists($@"{Directory.GetCurrentDirectory()}\YTConfig.json"))
+            {
+                YoutubeSystem = JsonConvert.DeserializeObject<YoutubeConfig>(File.ReadAllText(Directory.GetCurrentDirectory() + @"\YTConfig.json"));
+
+            }
+            else
+            {
+                YoutubeSystem = new YoutubeConfig { ChannelURL = "0", LastVideoID = "0", UploadListURL = "0", BroadcastID = 0 };
+
+            }
+     
+            YoutubeClient = new YouTubeService(new BaseClientService.Initializer
+            {
+                ApiKey = "AIzaSyD7i-7a5dTIvxsy20j6McqxE1FXczlepVQ",
+                ApplicationName = "CirclePeopleRetriever"
+            });
+
             if (File.Exists($@"{Directory.GetCurrentDirectory()}\SystemsConfig.json"))
             {
                 Systems = JsonConvert.DeserializeObject<List<DiscordSystem>>(File.ReadAllText(Directory.GetCurrentDirectory() + @"\SystemsConfig.json"));
@@ -113,7 +135,20 @@ namespace CirclePeopleBot
             Client.MessageCreated += MessageCreated;
             Client.MessageReactionAdded += ReactionAdded;
 
-        }
+            _ = Task.Run(async () => {
+                await VideoLookup();
+                System.Timers.Timer timer = new System.Timers.Timer
+                {
+                    Interval = 60 * 1000,
+                };
+                timer.Elapsed += async delegate
+                {
+                   await VideoLookup();
+                };
+                timer.Start();
+
+            });
+            }
 
 
         private async Task ReactionAdded(DSharpPlus.EventArgs.MessageReactionAddEventArgs e)
@@ -156,6 +191,37 @@ namespace CirclePeopleBot
 
             }
 
+        }
+
+        private async static Task VideoLookup()
+        {
+            Console.WriteLine("[VIDLOOKUP] I Exists!");
+            if (CPBot.YoutubeSystem.ChannelURL != "0")
+            {
+                var Request = CPBot.YoutubeClient.PlaylistItems.List("snippet, contentDetails, status");
+                Request.Key = CPBot.YoutubeClient.ApiKey;
+                Request.PlaylistId = CPBot.YoutubeSystem.UploadListURL;
+                Request.MaxResults = 2;
+                var Responce = Request.Execute();
+                var LatestVideos = Responce.Items;
+                foreach (var video in LatestVideos)
+                {
+                    if (video.Id != CPBot.YoutubeSystem.LastVideoID && CPBot.YoutubeSystem.BroadcastID != 0 && video.Snippet.Position == 0)
+                    {
+                        var broadcast = await Client.GetChannelAsync(CPBot.YoutubeSystem.BroadcastID);
+                        DiscordEmbedBuilder videoEmbed = new DiscordEmbedBuilder();
+                        videoEmbed
+                            .WithThumbnailUrl($"{video.Snippet.Thumbnails.High.Url}")
+                            .WithDescription($"{(video.Snippet.PublishedAt.HasValue? $" Published at : {video.Snippet.PublishedAt?.ToShortDateString()} @ {video.Snippet.PublishedAt?.ToShortTimeString()}" : ".")}")
+                            .WithAuthor($" New Video : {video.Snippet.Title}",$"http://youtu.be/{video.Id}")
+                            .WithColor( new DiscordColor(255, 150, 202));
+                        CPBot.YoutubeSystem.LastVideoID = video.Id;
+                        File.WriteAllText($@"{Directory.GetCurrentDirectory()}\YTConfig.json", JsonConvert.SerializeObject(CPBot.YoutubeSystem));
+                        await broadcast.SendMessageAsync(embed: videoEmbed);
+                    }
+                    
+                }
+            }
         }
 
         private async Task MessageCreated(DSharpPlus.EventArgs.MessageCreateEventArgs e)

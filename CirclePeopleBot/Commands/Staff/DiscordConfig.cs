@@ -26,10 +26,59 @@ namespace CirclePeopleBot.Commands.Staff
               .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
               .WithDescription($"Administrative Panel")
               .AddField($"Suggestion System", $"Type : **{ctx.Prefix}** config `suggestions/sug` <add/remove/list> to edit the system\n")
-               .AddField($"Bot Prefix", $"Type : **{ctx.Prefix}** config `botprefix` [new prefix] to edit\n")
+              .AddField($"Youtube Integration", $"Type : **{ctx.Prefix}** config `youtube/yt` to edit the integration\n")
+              .AddField($"Bot Prefix", $"Type : **{ctx.Prefix}** config `botprefix` [new prefix] to edit\n")
               .WithAuthor($"Listing all Commands", "https://discord.gg/CirclePeople", ctx.Guild.IconUrl);
             await ctx.RespondAsync(embed: Embed);
         }
+        [Command("youtube")]
+        [Aliases("yt")]
+        public async Task Youtube(CommandContext ctx) {
+            DiscordEmbedBuilder Embed = new DiscordEmbedBuilder();
+            CPInteractivity cpInteract = new CPInteractivity();
+            //Example URL  : https://www.youtube.com/channel/UCiDqXBLW8zaeA34fwtH6Kmg?view_as=subscriber #ShamelessSelfPromotion
+          
+            DiscordChannelConverter parser = new DiscordChannelConverter();
+            Embed
+                    .WithDescription($"Please reply with the `youtube channel` (URL)")
+                    .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
+                    .WithAuthor($"Configuration of the Youtube Integration", "https://discord.gg/CirclePeople", ctx.Guild.IconUrl);
+            var msg = await ctx.RespondAsync(embed: Embed);
+            var input = await cpInteract.GetResponce(CPBot.Interactivity, ctx);
+            string ChannelURL = input.Content;
+            string ChannelID = (ChannelURL.Contains("http") ? (ChannelURL.Contains("?view_as") ? ChannelURL.Split('?')[0].Split('/').Last() : ChannelURL.Split('/').Last()) : "Invalid URL");
+            Embed
+                .WithDescription($"Please reply with the `discord channel` (E.g. #youtube)")
+                .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
+                .WithAuthor($"Configuration of the Youtube Integration", "https://discord.gg/CirclePeople", ctx.Guild.IconUrl);
+            await msg.ModifyAsync(embed: Embed.Build());
+            input = await cpInteract.GetResponce(CPBot.Interactivity, ctx);
+            var Channel = await parser.ConvertAsync(input.Content, ctx);
+
+
+            ////////////////////////////////////////////////////////////////////////////////////////
+            var BaseChannelRequest = CPBot.YoutubeClient.Channels.List("snippet,contentDetails");
+            BaseChannelRequest.Id = ChannelID;
+            BaseChannelRequest.Key = CPBot.YoutubeClient.ApiKey;
+            var FirstRequest = BaseChannelRequest.Execute();
+            String Title =FirstRequest.Items[0].Snippet.Title;
+            String ImageURL = FirstRequest.Items[0].Snippet.Thumbnails.High.Url;
+            String UploadPlaylistURL = FirstRequest.Items[0].ContentDetails.RelatedPlaylists.Uploads;
+            CPBot.YoutubeSystem.ChannelURL = ChannelID;
+            CPBot.YoutubeSystem.UploadListURL = UploadPlaylistURL;
+            CPBot.YoutubeSystem.BroadcastID = Channel.Value.Id;
+            File.WriteAllText($@"{Directory.GetCurrentDirectory()}\YTConfig.json", JsonConvert.SerializeObject(CPBot.YoutubeSystem));
+
+            Embed
+                   .ClearFields()
+                   .WithDescription($"YT : Channel **{Title}** [{ChannelID}] \n **DISCORD** :  {Channel.Value.Mention} set!\n\n **Sidenote : ** The YT Channel will be updated on the next cycle. [~30s]")
+                   
+                   .WithThumbnailUrl(ImageURL)
+                   .WithFooter($"Command Requested By : {ctx.Member.Username} ⌾ {DateTime.Today.DayOfWeek.ToString()} @ {DateTime.Now.ToShortTimeString()}")
+                   .WithAuthor($"Configuration of the Youtube Integration", "https://discord.gg/CirclePeople", ctx.Guild.IconUrl);
+            await msg.ModifyAsync(embed: Embed.Build());
+        }
+        #region Suggestions
         [Command("suggestions")]
         [Aliases("sug")]
         public async Task SugestionSError(CommandContext ctx)
@@ -143,7 +192,8 @@ namespace CirclePeopleBot.Commands.Staff
             }
             
         }
-
+        #endregion
+        #region Botprefix
         [Command("botprefix")]
         public async Task BotConfigSError(CommandContext ctx)
         {
@@ -170,5 +220,6 @@ namespace CirclePeopleBot.Commands.Staff
             await ctx.RespondAsync(embed: Embed);
             
         }
+        #endregion
     }
 }
