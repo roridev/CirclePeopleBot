@@ -124,7 +124,16 @@ namespace CirclePeopleBot
             });
         async Task<int> ResolvePrefixAsync(DiscordMessage msg)
         {
-            return msg.GetStringPrefixLength(MainCFG.Prefix.ToList()[0]);
+                int passed = -1;
+                foreach (string prefix in MainCFG.Prefix.ToList())
+                {
+                   passed =  msg.GetStringPrefixLength(prefix);
+                    if (passed != -1) {
+                        return passed;
+                    }
+                }
+                return passed;
+            
         }
 
         CommandsNext.RegisterCommands(Assembly.GetEntryAssembly());
