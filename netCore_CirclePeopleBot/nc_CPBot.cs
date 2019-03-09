@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace netCore_CirclePeopleBot
 {
-    class nc_CPBot
+    class nc_CPBot 
     {
     /* Bot Properties
     * All public acessible properties
