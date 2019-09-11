@@ -3,7 +3,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
-namespace LA_RPbot.Discord.Attributes
+namespace Lolibase.Discord.Attributes
 {
     public class ImoutoAttribute : CheckBaseAttribute
     {

@@ -10,12 +10,13 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
-using LA_RPbot.Discord;
-using LA_RPbot.Discord.Utils;
+using Lolibase.Discord;
+using Lolibase.Discord.Utils;
+using Lolibase.Objects;
 using Newtonsoft.Json;
 using static System.Reflection.Assembly;
 
-namespace LA_RPbot.Discord
+namespace Lolibase.Discord
 {
     public class Program
     {
@@ -23,29 +24,40 @@ namespace LA_RPbot.Discord
         public static CommandsNextExtension CommandsNext { get; set; }
         public static InteractivityExtension Interactivity { get; set; }
         public static Config Config { get; set; }
-
         public static List<Type> systems = new List<Type>();
         public static Program Instance { get; set; }
+        public static List<Pair> pairs { get; set; }
         static void Main(string[] args)
         {
+            if (File.Exists(Directory.GetCurrentDirectory() + "/Pairs.json"))
+            {
+                pairs = JsonConvert.DeserializeObject<List<Pair>>(File.ReadAllText(Directory.GetCurrentDirectory() + "/Pairs.json"));
+            }
+            else
+            {
+                pairs = new List<Pair>();
+                File.WriteAllText(Directory.GetCurrentDirectory() + "/Pairs.json", JsonConvert.SerializeObject(pairs, Formatting.Indented));
+            }
+
             if (File.Exists(Directory.GetCurrentDirectory() + "/Config.json"))
             {
                 Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(Directory.GetCurrentDirectory() + "/Config.json"));
                 systems = GetExecutingAssembly().GetTypes().Where(x => x.GetInterfaces().Contains(typeof(IApplicableSystem))).ToList();
                 Instance = new Program();
-                
+
                 Init().GetAwaiter().GetResult();
             }
             else
             {
                 Config = TUI_cfg();
-                File.WriteAllText(Directory.GetCurrentDirectory()+"/Config.json",JsonConvert.SerializeObject(Config, Formatting.Indented));
+                File.WriteAllText(Directory.GetCurrentDirectory() + "/Config.json", JsonConvert.SerializeObject(Config, Formatting.Indented));
                 systems = GetExecutingAssembly().GetTypes().Where(x => x.GetInterfaces().Contains(typeof(IApplicableSystem))).ToList();
                 Instance = new Program();
-                
+
                 Init().GetAwaiter().GetResult();
             }
-            
+
+
         }
 
         private Program()
@@ -54,7 +66,6 @@ namespace LA_RPbot.Discord
             {
                 Token = Config.Token,
                 AutoReconnect = true,
-                AutomaticGuildSync = true,
                 UseInternalLogHandler = true,
                 TokenType = TokenType.Bot
             });
@@ -76,21 +87,20 @@ namespace LA_RPbot.Discord
             {
                 if (system.GetInterfaces().Contains(typeof(IApplyToInteractivity)))
                 {
-                    var instance = (IApplyToInteractivity) Activator.CreateInstance(system);
+                    var instance = (IApplyToInteractivity)Activator.CreateInstance(system);
                     instance.ApplyToInteractivity(Interactivity);
                     Console.WriteLine($"[System] {system.Name} Loaded");
                 }
                 else if (system.GetInterfaces().Contains(typeof(IApplyToClient)))
                 {
-                    var instance = (IApplyToClient) Activator.CreateInstance(system);
+                    var instance = (IApplyToClient)Activator.CreateInstance(system);
+                    instance.Activate();
                     instance.ApplyToClient(Client);
-                    Console.WriteLine($"[System] {system.Name} Loaded");
+                    Console.WriteLine($"[System] {instance.Name} Loaded \n\tDescription : {instance.Description}");
                 }
             }
             CommandsNext.RegisterCommands(GetExecutingAssembly());
         }
-        
-
         private static Config TUI_cfg()
         {
             var c = new Config();

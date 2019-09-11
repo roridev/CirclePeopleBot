@@ -1,6 +1,6 @@
 using DSharpPlus.Interactivity;
 
-namespace LA_RPbot.Discord.Utils
+namespace Lolibase.Discord.Utils
 {
     /// <summary>
     /// Interface for <see cref="IApplicableSystem"/> that can be applied to <see cref="InteractivityExtension"/>

@@ -8,11 +8,11 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
-using LA_RPbot.Discord.Attributes;
-using LA_RPbot.Discord.Utils;
+using Lolibase.Discord.Attributes;
+using Lolibase.Discord.Utils;
 using Newtonsoft.Json;
 
-namespace LA_RPbot.Discord.Commands
+namespace Lolibase.Discord.Commands
 {
     public class Developer : BaseCommandModule
     {

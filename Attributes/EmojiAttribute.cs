@@ -1,7 +1,7 @@
 using System;
 using DSharpPlus.Entities;
 
-namespace LA_RPbot.Discord.Attributes
+namespace Lolibase.Discord.Attributes
 {
     public class EmojiAttribute : Attribute
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace LA_RPbot.Discord
+namespace Lolibase.Discord
 {
     public class Config
     {

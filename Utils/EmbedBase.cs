@@ -3,19 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
-using LA_RPbot.Discord.Attributes;
+using Lolibase.Discord.Attributes;
+using Lolibase.Objects;
 
-namespace LA_RPbot.Discord.Utils
+namespace Lolibase.Discord.Utils
 {
     public static class EmbedBase
     {
 
-        public static DiscordEmbed GroupHelpEmbed(Command Command){
+        public static DiscordEmbed GroupHelpEmbed(Command Command)
+        {
             List<Command> commands = new List<Command>();
             CommandGroup cG = null;
             if (Command is CommandGroup cGroup)
             {
-                commands  = cGroup.Children.ToList();
+                commands = cGroup.Children.ToList();
                 cG = cGroup;
             }
             var commandList = "";
@@ -25,9 +27,9 @@ namespace LA_RPbot.Discord.Utils
             }
             var groupHelpEmbed = new DiscordEmbedBuilder();
             groupHelpEmbed
-                .WithFooter("「lolibase」・ 0.1","https://i.imgur.com/6ovRzR9.png")
+                .WithFooter("「lolibase」・ 0.1", "https://i.imgur.com/6ovRzR9.png")
                 .WithDescription(cG?.Description)
-                .AddField("Commands",string.IsNullOrWhiteSpace(commandList)?"No sub-commands found":commandList)
+                .AddField("Commands", string.IsNullOrWhiteSpace(commandList) ? "No sub-commands found" : commandList)
                 .WithAuthor($"Group : {cG?.Name} | Help")
                 .WithColor(DiscordColor.Gray);
             return groupHelpEmbed.Build();
@@ -36,7 +38,7 @@ namespace LA_RPbot.Discord.Utils
         public static DiscordEmbed HelpEmbed(this CommandsNextExtension cne)
         {
             List<Command> x = cne.RegisteredCommands.Values.ToList();
-            var groups = new List<CommandGroup>(); 
+            var groups = new List<CommandGroup>();
             foreach (var command in x)
             {
                 if (command is CommandGroup group)
@@ -72,7 +74,7 @@ namespace LA_RPbot.Discord.Utils
             helpBuilder.AddField("❓ ・ Miscellaneous ", misc);
             helpBuilder
                 .WithDescription($"To see help for a group run {Program.Client.CurrentUser.Mention} `group name`")
-                .WithFooter("「lolibase」・ 0.1","https://i.imgur.com/6ovRzR9.png")
+                .WithFooter("「lolibase」・ 0.1", "https://i.imgur.com/6ovRzR9.png")
                 .WithAuthor("Help | Showing all groups")
                 .WithColor(DiscordColor.CornflowerBlue);
             return helpBuilder.Build();
@@ -82,7 +84,7 @@ namespace LA_RPbot.Discord.Utils
         {
             var inputEmbedBuilder = new DiscordEmbedBuilder();
             inputEmbedBuilder
-                .WithFooter("「lolibase」・ 0.1","https://i.imgur.com/6ovRzR9.png")
+                .WithFooter("「lolibase」・ 0.1", "https://i.imgur.com/6ovRzR9.png")
                 .WithDescription($"Please type : {input}")
                 .WithColor(DiscordColor.MidnightBlue);
             return inputEmbedBuilder.Build();
@@ -92,7 +94,7 @@ namespace LA_RPbot.Discord.Utils
         {
             var outputEmbedBuilder = new DiscordEmbedBuilder();
             outputEmbedBuilder
-                .WithFooter("「lolibase」・ 0.1","https://i.imgur.com/6ovRzR9.png")
+                .WithFooter("「lolibase」・ 0.1", "https://i.imgur.com/6ovRzR9.png")
                 .WithDescription($"{output}")
                 .WithColor(DiscordColor.SpringGreen);
             return outputEmbedBuilder.Build();
@@ -108,8 +110,8 @@ namespace LA_RPbot.Discord.Utils
             var orderedListBuilder = new DiscordEmbedBuilder();
             orderedListBuilder
                 .WithAuthor($"List of : {name}")
-                .WithFooter("「lolibase」・ 0.1","https://i.imgur.com/6ovRzR9.png")
-                .WithDescription(string.IsNullOrWhiteSpace(data)?"No data":data)
+                .WithFooter("「lolibase」・ 0.1", "https://i.imgur.com/6ovRzR9.png")
+                .WithDescription(string.IsNullOrWhiteSpace(data) ? "No data" : data)
                 .WithColor(DiscordColor.Orange);
             return orderedListBuilder.Build();
         }
@@ -120,16 +122,50 @@ namespace LA_RPbot.Discord.Utils
             var listBuilder = new DiscordEmbedBuilder();
             listBuilder
                 .WithAuthor($"List of : {name}")
-                .WithFooter("「lolibase」・ 0.1","https://i.imgur.com/6ovRzR9.png")
-                .WithDescription(string.IsNullOrWhiteSpace(data)?"No data":data)
+                .WithFooter("「lolibase」・ 0.1", "https://i.imgur.com/6ovRzR9.png")
+                .WithDescription(string.IsNullOrWhiteSpace(data) ? "No data" : data)
                 .WithColor(DiscordColor.Orange);
             return listBuilder.Build();
+        }
+
+        public static DiscordEmbed SuggestionEmbed(Suggestion s)
+        {
+            DiscordEmbedBuilder embed = new DiscordEmbedBuilder();
+            embed
+            .WithAuthor("Suggestion System")
+            .WithColor(new DiscordColor(193, 61, 80));
+            String desc = $"Submitted by : <@{s.Submitter}>\nMessage : {s.Message}";
+            if (s.OsuLink.HasValue)
+            {
+                s.Links.Remove(s.OsuLink.Value);
+            }
+
+            if (s.Links.Count > 0)
+            {
+
+                desc += $"\n\nLinks : [";
+                foreach (var lnk in s.Links)
+                {
+                    desc += $"<{lnk}> ,";
+                }
+                desc = desc.Remove(desc.Length - 2, 1);
+                desc += "]";
+            }
+            if (s.OsuLink.HasValue)
+            {
+                desc += $"\n\n\n[<:std:553375849177415693> Osu Link]({s.OsuLink.Value})";
+            }
+            embed
+            .WithFooter($"Circle People Bot | v 2.0")
+            .WithDescription($"{desc}");
+            return embed.Build();
+
         }
         public static DiscordEmbed CommandHelpEmbed(Command command)
         {
             if (command.Overloads?.Any() == true)
             {
-                var use= "";
+                var use = "";
                 List<CommandOverload> o = command.Overloads.ToList();
                 var arguments = new List<CommandArgument>();
                 o.RemoveAll(x => x.Arguments.Count == 0);
@@ -152,7 +188,7 @@ namespace LA_RPbot.Discord.Utils
                 arguments.ForEach(x => argumentExplanation += $"{x.Name} - {x.Description}\n");
                 var commandHelpEmbed = new DiscordEmbedBuilder();
                 commandHelpEmbed
-                    .WithFooter("「lolibase」・ 0.1","https://i.imgur.com/6ovRzR9.png")
+                    .WithFooter("「lolibase」・ 0.1", "https://i.imgur.com/6ovRzR9.png")
                     .AddField("Arguments", argumentExplanation)
                     .WithDescription($"Use : {use}")
                     .WithAuthor($"Command : {command.Name} | Help")
