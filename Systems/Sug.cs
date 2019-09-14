@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using DSharpPlus.Interactivity;
 using Lolibase.Discord.Utils;
 using Lolibase.Objects;
 
@@ -66,7 +65,7 @@ namespace Lolibase.Discord.Systems
                                     List<DiscordUser> reacts = new List<DiscordUser>();
                                     reacts = (await (await ich.GetMessageAsync(msg.Id)).GetReactionsAsync(ppbusg3h)).ToList();
                                     
-                                    if (reacts.Any( x  => ((guild.GetMemberAsync(x.Id).Result).PermissionsIn(ich).HasPermission(Permissions.ManageRoles))))
+                                    if (reacts.Any( x  => ((guild.GetMemberAsync(x.Id).Result).PermissionsIn(ich).HasPermission(Permissions.ManageRoles))&&x != client.CurrentUser))
                                     {
                                         MemoryStream str = new MemoryStream(s.Image.Value);
                                         await och.SendFileAsync("temp.png", str, embed: EmbedBase.SuggestionEmbed(s));

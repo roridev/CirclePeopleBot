@@ -14,7 +14,7 @@ namespace Lolibase.Objects
         public ulong Submitter { get; private set; }
         public List<string> Links { get; private set; }
         public string Message { get; private set; }
-        public Optional<string> OsuLink { get; private set; }
+        public Optional<Dictionary<LinkType, string>> OsuLink { get; private set; }
 
         public Optional<byte[]> Image { get; set; }
 
@@ -31,27 +31,56 @@ namespace Lolibase.Objects
             }
         }
 
-        private Tuple<ulong, List<string>, string, Optional<string>, Optional<byte[]>> Analize(DiscordMessage m)
+        private Tuple<ulong, List<string>, string, Optional<Dictionary<LinkType, string>>, Optional<byte[]>> Analize(DiscordMessage m)
         {
             string msg = m.Content;
             Regex http_sRegex = new Regex(@"(http|https):\/\/\S*", RegexOptions.IgnoreCase);
             List<Match> links = http_sRegex.Matches(msg).ToList();
             List<string> Slinks = new List<string>();
-            foreach(var link in links)
+            foreach (var link in links)
             {
                 Slinks.Add(link.ToString());
             }
+            var osulinks = new Dictionary<LinkType, string>();
             string message = http_sRegex.Replace(msg, "");
-            Optional<string> osu;
+            Optional<Dictionary<LinkType, string>> osu;
             Optional<byte[]> img;
             if (links.Any(x => x.ToString().Contains("https://osu.ppy.sh")))
             {
-                var lnk = links.Find(x => x.ToString().Contains("https://osu.ppy.sh"));
-                osu = new Optional<string>(lnk.ToString());
+                var lnks = links.FindAll(x => x.ToString().Contains("https://osu.ppy.sh"));
+                foreach (var lnk in lnks)
+                {
+                    if (lnk.ToString().Contains("beatmapsets"))
+                    {
+                        osulinks.Add(LinkType.MAP, lnk.ToString());
+
+                    }
+                    else if (lnk.ToString().Contains("users"))
+                    {
+                        osulinks.Add(LinkType.PROFILE, lnk.ToString());
+                    }
+                    else if(lnk.ToString().Contains("/ss/"))
+                    {
+                        osulinks.Add(LinkType.SCREENSHOT,lnk.ToString());
+                    }
+                    else
+                    {
+                        osulinks.Add(LinkType.FORUMPOST, lnk.ToString());
+                    }
+                }
+                if (osulinks.Count != 0)
+                {
+                    osu = new Optional<Dictionary<LinkType, string>>(osulinks);
+                }
+                else
+                {
+                    osu = new Optional<Dictionary<LinkType, string>>();
+                }
+
             }
             else
             {
-                osu = new Optional<string>();
+                osu = new Optional<Dictionary<LinkType, string>>();
             }
             ulong member = m.Author.Id;
             if (m.Attachments.Count != 0 && m.Attachments[0].Width != 0)
@@ -73,7 +102,7 @@ namespace Lolibase.Objects
             {
                 img = new Optional<byte[]>();
             }
-            return new Tuple<ulong, List<string>, string, Optional<string>, Optional<byte[]>>(member, Slinks, message, osu, img);
+            return new Tuple<ulong, List<string>, string, Optional<Dictionary<LinkType, string>>, Optional<byte[]>>(member, Slinks, message, osu, img);
         }
 
         bool IsImageUrl(string URL)

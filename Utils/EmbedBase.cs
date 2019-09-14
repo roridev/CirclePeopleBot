@@ -137,7 +137,10 @@ namespace Lolibase.Discord.Utils
             String desc = $"Submitted by : <@{s.Submitter}>\nMessage : {s.Message}";
             if (s.OsuLink.HasValue)
             {
-                s.Links.Remove(s.OsuLink.Value);
+                foreach (string link in s.OsuLink.Value.Values)
+                {
+                    s.Links.Remove(link);
+                }
             }
 
             if (s.Links.Count > 0)
@@ -153,7 +156,28 @@ namespace Lolibase.Discord.Utils
             }
             if (s.OsuLink.HasValue)
             {
-                desc += $"\n\n\n[<:std:553375849177415693> Osu Link]({s.OsuLink.Value})";
+                string idesc = "";
+                foreach (var olink in s.OsuLink.Value)
+                {
+                    switch (olink.Key)
+                    {
+                        case LinkType.MAP:
+                            idesc += $"[🗺 Osu Map]({olink.Value})\t";
+                            break;
+                        case LinkType.PROFILE:
+                            idesc += $"[🤵 Osu Profile]({olink.Value})\t";
+                            break;
+                        case LinkType.SCREENSHOT:
+                            idesc += $"[📷]({olink.Value})\t";
+                            break;
+                        case LinkType.FORUMPOST:
+                            idesc += $"[Osu Link]({olink.Value})\t";
+                            break;
+                    }
+
+                }
+                desc += $"\n\n\n{idesc}";
+
             }
             embed
             .WithFooter($"Circle People Bot | v 2.0")
