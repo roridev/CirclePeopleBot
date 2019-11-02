@@ -35,6 +35,13 @@ namespace Lolibase.Discord.Commands
                 JsonConvert.SerializeObject(Program.Config, Formatting.Indented));
             await ctx.RespondAsync(embed: embed);
         }
+        [Command("doink")]
+        [RequireOwner]
+        public async Task Doink(CommandContext ctx)
+        {
+            await ctx.RespondAsync(">I'll commit sudoku soon:tm:");
+            await ctx.Client.DisconnectAsync();
+        }
     }
 
 

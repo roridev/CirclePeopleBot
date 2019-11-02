@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Microsoft.Win32.SafeHandles;
-using System.IO;
 using System.Linq;
 using System;
 using System.Threading.Tasks;
@@ -9,6 +7,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Lolibase.Discord.Utils;
 using Lolibase.Objects;
+using System.Text;
 
 namespace Lolibase.Discord.Systems
 {
@@ -38,6 +37,7 @@ namespace Lolibase.Discord.Systems
 
         private async Task Ready(GuildDownloadCompletedEventArgs e)
         {
+            Console.WriteLine("[Bot Started]");
             var pairs = Program.pairs;
             var client = e.Client;
             var Config = Program.Config;
@@ -47,37 +47,43 @@ namespace Lolibase.Discord.Systems
                 var guild = await client.GetGuildAsync(Config.MasterId);
                 foreach (var pair in pairs)
                 {
-                    Console.WriteLine($"[Reading Previous Suggestions] {pair.Name}");
-                    var ich = await client.GetChannelAsync(pair.InputPair);
-                    var och = await client.GetChannelAsync(pair.OutputPair);
-                    var hundred = await ich.GetMessagesAsync();
-                    var list = hundred.ToList();
-                    foreach (var msg in list)
+                    try
                     {
-                        if (!String.IsNullOrWhiteSpace(msg.Content))
+                        Console.WriteLine($"[Reading Previous Suggestions] {pair.Name}");
+                        var ich = await client.GetChannelAsync(pair.InputPair);
+                        var och = await client.GetChannelAsync(pair.OutputPair);
+                        var hundred = await ich.GetMessagesAsync();
+                        var list = hundred.ToList();
+                        foreach (var msg in list)
                         {
-                            Suggestion s = new Suggestion(msg);
-                            if (s.Image.HasValue && s.Links.Count > 0 && msg.Reactions.Count > 0)
+                            if (!String.IsNullOrWhiteSpace(msg.Content))
                             {
-                                var ppbusg3h = DiscordEmoji.FromName(e.Client, ":+1:");
-                                if (msg.Reactions.Any(z => z.Emoji == ppbusg3h))
+                                Suggestion s = new Suggestion(msg);
+                                if (s.Image.HasValue && s.Links.Count > 0 && msg.Reactions.Count > 0)
                                 {
-                                    List<DiscordUser> reacts = new List<DiscordUser>();
-                                    reacts = (await (await ich.GetMessageAsync(msg.Id)).GetReactionsAsync(ppbusg3h)).ToList();
-                                    
-                                    if (reacts.Any( x  => ((guild.GetMemberAsync(x.Id).Result).PermissionsIn(ich).HasPermission(Permissions.ManageRoles))&&x != client.CurrentUser))
+                                    var ppbusg3h = DiscordEmoji.FromName(e.Client, ":+1:");
+                                    if (msg.Reactions.Any(z => z.Emoji == ppbusg3h))
                                     {
-                                        MemoryStream str = new MemoryStream(s.Image.Value);
-                                        await och.SendFileAsync("temp.png", str, embed: EmbedBase.SuggestionEmbed(s));
-                                        str.Dispose();
-                                        await msg.DeleteAsync();
+                                        List<DiscordUser> reacts = new List<DiscordUser>();
+                                        reacts = (await (await ich.GetMessageAsync(msg.Id)).GetReactionsAsync(ppbusg3h)).ToList();
+
+                                        if (reacts.Any(x => ((guild.GetMemberAsync(x.Id).Result).PermissionsIn(ich).HasPermission(Permissions.ManageRoles)) && x != client.CurrentUser))
+                                        {
+                                            await och.SendFileAsync(s.Image.Value, embed: EmbedBase.SuggestionEmbed(s));
+                                            await msg.DeleteAsync();
+                                        }
                                     }
                                 }
                             }
-                        }
 
+                        }
+                        Console.WriteLine($"[Reading Previous Suggestions] {pair.Name} <COMPLETED>");
                     }
-                    Console.WriteLine($"[Reading Previous Suggestions] {pair.Name} <COMPLETED>");
+                    catch (Exception ex)
+                    {
+                        StringBuilder data = new StringBuilder();
+                        Console.WriteLine($"[EX <{ex.Message}> @ Sug.cs : Ready] \n\t{ex}");
+                    }
                 }
             }
         }
@@ -88,32 +94,49 @@ namespace Lolibase.Discord.Systems
                 Suggestion sg = new Suggestion(e.Message);
                 if (sg.Image.HasValue || sg.Links.Count != 0)
                 {
-                    await e.Message.CreateReactionAsync(DiscordEmoji.FromName(e.Client, ":+1:"));
-                    await e.Message.CreateReactionAsync(DiscordEmoji.FromName(e.Client, ":-1:"));
-                    await e.Message.CreateReactionAsync(DiscordEmoji.FromName(e.Client, ":white_check_mark:"));
+                    try
+                    {
+                        await e.Message.CreateReactionAsync(DiscordEmoji.FromName(e.Client, ":+1:"));
+                        await e.Message.CreateReactionAsync(DiscordEmoji.FromName(e.Client, ":-1:"));
+                        await e.Message.CreateReactionAsync(DiscordEmoji.FromName(e.Client, ":white_check_mark:"));
+                    }
+                    catch (Exception ex)
+                    {
+                        StringBuilder data = new StringBuilder();
+                        Console.WriteLine($"[EX <{ex.Message}> @ Sug.cs : MessageCreatedEvent] \n\t{ex}");
+                    }
+
+
                 }
             }
         }
 
         private async Task ReactionAdded(MessageReactionAddEventArgs e)
         {
-            if (e.User != e.Client.CurrentUser && Program.pairs.Any(x => x.InputPair == e.Channel.Id))
+            try
             {
-                Pair p = Program.pairs.Find(x => x.InputPair == e.Channel.Id);
-                if (e.Emoji == DiscordEmoji.FromName(e.Client, ":+1:") && ((DiscordMember)e.User).PermissionsIn(e.Channel).HasPermission(Permissions.ManageRoles))
+                if (e.User != e.Client.CurrentUser && Program.pairs.Any(x => x.InputPair == e.Channel.Id))
                 {
-                    var msg = await e.Channel.GetMessageAsync(e.Message.Id);
-                    Suggestion sg = new Suggestion(msg);
-                    Stream s = new MemoryStream(sg.Image.Value);
-                    var RetChn = e.Channel.Guild.GetChannel(p.OutputPair);
-                    if (sg.Image.HasValue)
+                    Pair p = Program.pairs.Find(x => x.InputPair == e.Channel.Id);
+                    if (e.Emoji == DiscordEmoji.FromName(e.Client, ":+1:") && ((DiscordMember)e.User).PermissionsIn(e.Channel).HasPermission(Permissions.ManageRoles))
                     {
-                        await RetChn.SendFileAsync("temp.png", s, null, false, EmbedBase.SuggestionEmbed(sg));
-                        await e.Message.DeleteAsync();
+                        var msg = await e.Channel.GetMessageAsync(e.Message.Id);
+                        Suggestion sg = new Suggestion(msg);
+                        var RetChn = e.Channel.Guild.GetChannel(p.OutputPair);
+                        if (sg.Image.HasValue)
+                        {
+                            await RetChn.SendFileAsync(sg.Image.Value, null, false, EmbedBase.SuggestionEmbed(sg));
+                            await e.Message.DeleteAsync();
+                        }
                     }
-                    s.Dispose();
                 }
             }
+            catch (Exception ex)
+            {
+                StringBuilder data = new StringBuilder();
+                Console.WriteLine($"[EX <{ex.Message}> @ Sug.cs : ReactionAdded] \n\t{ex}");
+            }
+
         }
         public void Deactivate()
         {

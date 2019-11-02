@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System;
 using DSharpPlus.Entities;
 using System.Globalization;
+using System.IO;
 
 namespace Lolibase.Objects
 {
@@ -16,7 +17,7 @@ namespace Lolibase.Objects
         public string Message { get; private set; }
         public Optional<Dictionary<LinkType, string>> OsuLink { get; private set; }
 
-        public Optional<byte[]> Image { get; set; }
+        public Optional<string> Image { get; set; }
 
         public Suggestion(DiscordMessage message)
         {
@@ -31,7 +32,7 @@ namespace Lolibase.Objects
             }
         }
 
-        private Tuple<ulong, List<string>, string, Optional<Dictionary<LinkType, string>>, Optional<byte[]>> Analize(DiscordMessage m)
+        private Tuple<ulong, List<string>, string, Optional<Dictionary<LinkType, string>>, Optional<string>> Analize(DiscordMessage m)
         {
             string msg = m.Content;
             Regex http_sRegex = new Regex(@"(http|https):\/\/\S*", RegexOptions.IgnoreCase);
@@ -44,7 +45,7 @@ namespace Lolibase.Objects
             var osulinks = new Dictionary<LinkType, string>();
             string message = http_sRegex.Replace(msg, "");
             Optional<Dictionary<LinkType, string>> osu;
-            Optional<byte[]> img;
+            Optional<string> img;
             if (links.Any(x => x.ToString().Contains("https://osu.ppy.sh")))
             {
                 var lnks = links.FindAll(x => x.ToString().Contains("https://osu.ppy.sh"));
@@ -59,9 +60,9 @@ namespace Lolibase.Objects
                     {
                         osulinks.Add(LinkType.PROFILE, lnk.ToString());
                     }
-                    else if(lnk.ToString().Contains("/ss/"))
+                    else if (lnk.ToString().Contains("/ss/"))
                     {
-                        osulinks.Add(LinkType.SCREENSHOT,lnk.ToString());
+                        osulinks.Add(LinkType.SCREENSHOT, lnk.ToString());
                     }
                     else
                     {
@@ -87,7 +88,8 @@ namespace Lolibase.Objects
             {
                 using (WebClient cl = new WebClient())
                 {
-                    img = new Optional<byte[]>(cl.DownloadData(m.Attachments[0].Url));
+                    cl.DownloadFile(m.Attachments[0].Url, $"{Directory.GetCurrentDirectory()}/tempimg.png");
+                    img = new Optional<string>($"{Directory.GetCurrentDirectory()}/tempimg.png");
                 }
             }
             else if (links.Any(x => IsImageUrl(x.ToString())))
@@ -95,14 +97,15 @@ namespace Lolibase.Objects
                 var lnk = links.Find(x => IsImageUrl(x.ToString()));
                 using (WebClient cl = new WebClient())
                 {
-                    img = new Optional<byte[]>(cl.DownloadData(lnk.ToString()));
+                    cl.DownloadFile(lnk.ToString(), $"{Directory.GetCurrentDirectory()}/tempimg.png");
+                    img = new Optional<string>($"{Directory.GetCurrentDirectory()}/tempimg.png");
                 }
             }
             else
             {
-                img = new Optional<byte[]>();
+                img = new Optional<string>();
             }
-            return new Tuple<ulong, List<string>, string, Optional<Dictionary<LinkType, string>>, Optional<byte[]>>(member, Slinks, message, osu, img);
+            return new Tuple<ulong, List<string>, string, Optional<Dictionary<LinkType, string>>, Optional<string>>(member, Slinks, message, osu, img);
         }
 
         bool IsImageUrl(string URL)

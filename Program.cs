@@ -65,8 +65,8 @@ namespace Lolibase.Discord
             Client = new DiscordClient(new DiscordConfiguration
             {
                 Token = Config.Token,
-                AutoReconnect = true,
-                UseInternalLogHandler = true,
+                AutoReconnect = false,
+                UseInternalLogHandler = false,
                 TokenType = TokenType.Bot
             });
 
@@ -100,6 +100,7 @@ namespace Lolibase.Discord
                 }
             }
             CommandsNext.RegisterCommands(GetExecutingAssembly());
+
         }
         private static Config TUI_cfg()
         {
@@ -119,6 +120,7 @@ namespace Lolibase.Discord
             await Task.Delay(-1);
         }
 
+#pragma warning disable CS1998
         private async Task<int> PrefixResolver(DiscordMessage msg)
         {
             switch (msg.GetMentionPrefixLength(Client.CurrentUser))
