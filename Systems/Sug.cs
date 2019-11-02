@@ -67,7 +67,7 @@ namespace Lolibase.Discord.Systems
                                         List<DiscordUser> reacts = new List<DiscordUser>();
                                         reacts = (await (await ich.GetMessageAsync(msg.Id)).GetReactionsAsync(ppbusg3h)).ToList();
 
-                                        if (reacts.Any(x => ((guild.GetMemberAsync(x.Id).Result).PermissionsIn(ich).HasPermission(Permissions.ManageRoles)) && x != client.CurrentUser))
+                                        if (reacts.Any(x => ((guild.GetMemberAsync(x.Id).Result).Roles.Any(y => y.Permissions.HasPermission(Permissions.ManageRoles)) && x != client.CurrentUser)))
                                         {
                                             await och.SendFileAsync(s.Image.Value, embed: EmbedBase.SuggestionEmbed(s));
                                             await msg.DeleteAsync();
@@ -118,7 +118,7 @@ namespace Lolibase.Discord.Systems
                 if (e.User != e.Client.CurrentUser && Program.pairs.Any(x => x.InputPair == e.Channel.Id))
                 {
                     Pair p = Program.pairs.Find(x => x.InputPair == e.Channel.Id);
-                    if (e.Emoji == DiscordEmoji.FromName(e.Client, ":+1:") && ((DiscordMember)e.User).PermissionsIn(e.Channel).HasPermission(Permissions.ManageRoles))
+                    if ((e.Channel.Guild.GetMemberAsync(e.User.Id).Result).Roles.Any(x => x.Permissions.HasPermission(Permissions.ManageRoles)) && e.User != e.Client.CurrentUser)
                     {
                         var msg = await e.Channel.GetMessageAsync(e.Message.Id);
                         Suggestion sg = new Suggestion(msg);
